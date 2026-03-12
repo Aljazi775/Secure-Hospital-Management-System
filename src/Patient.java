@@ -8,6 +8,16 @@ public class Patient {
     private String address;
 
 
+    // constructor
+    public Patient(String fName, String lName, String dateOfBirth, String pGender, String pPhone, String pAddress) {
+        this.firstName = fName;
+        this.lastName = lName;
+        this.dob = dateOfBirth;
+        this.gender = pGender;
+        this.phone = pPhone;
+        this.address = pAddress;
+    }
+
     public int getId() {
         return id;
     }

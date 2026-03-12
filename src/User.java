@@ -7,6 +7,15 @@ public class User {
     private int failedAttempts;
 
     
+    public User(int uId, String uName, String pwdHash, String uRole) {
+        id = uId;
+        username = uName;
+        passwordHash = pwdHash;
+        role = uRole;
+        locked = false;
+        failedAttempts = 0;
+    }
+
     public int getId() {
         return id;
     }
