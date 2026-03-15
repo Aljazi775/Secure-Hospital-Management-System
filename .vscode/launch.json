@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run HMS App (JavaFX)",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "HMS_Project",
+            "vmArgs": "--module-path \"${workspaceFolder}/HMS_Project/lib\" --add-modules javafx.controls,javafx.fxml"
+        }
+    ]
+}
