@@ -79,14 +79,14 @@ public class UserLogin {
             }
 
             if (AuthorizationService.isAdmin(loggedInUser)) {
-                System.out.println("You are authorized to manage users");
-                messageLabel.setText("Admin Login Success!");
+                ManageUsers manageScreen = new ManageUsers(primaryStage);
+                manageScreen.initializeComponents();
             } else if (AuthorizationService.isDoctor(loggedInUser)) {
-                System.out.println("You are authorized to manage medical records");
-                messageLabel.setText("Doctor Login Success!");
+                PatientView patientScreen = new PatientView(primaryStage);
+                patientScreen.initializeComponents();
             } else {
-                System.out.println("Welcome " + loggedInUser.getUsername());
-                messageLabel.setText("Login Success!");
+                PatientView patientScreen = new PatientView(primaryStage);
+                patientScreen.initializeComponents();
             }
         } else {
             messageLabel.setText("Invalid username or password");
