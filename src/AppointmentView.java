@@ -10,19 +10,30 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AppointmentView {
 
     private Stage stage;
+    private String callerRole;
     private TableView<Appointment> table;
     private ObservableList<Appointment> appointmentData;
-    private TextField patientIdInput;
-    private TextField doctorIdInput;
-    private TextField datetimeInput;
+    private ComboBox<String> patientDropdown;
+    private ComboBox<String> doctorDropdown;
+    private TextField dateInput;
+    private TextField timeInput;
+    private HashMap<String, Integer> patientMap;
+    private HashMap<String, Integer> doctorMap;
 
-    public AppointmentView(Stage s) {
+    public AppointmentView(Stage s, String callerRole) {
         this.stage = s;
+        this.callerRole = callerRole;
+        this.patientMap = new HashMap<>();
+        this.doctorMap = new HashMap<>();
     }
 
     public void initializeComponents() {
@@ -53,17 +64,25 @@ public class AppointmentView {
 
         loadData();
 
+        // Booking form - only shown to Receptionist
         HBox formBox = new HBox(10);
         formBox.setAlignment(Pos.CENTER);
 
-        patientIdInput = new TextField();
-        patientIdInput.setPromptText("Patient ID");
+        patientDropdown = new ComboBox<>();
+        patientDropdown.setPromptText("Select Patient");
+        loadPatients();
 
-        doctorIdInput = new TextField();
-        doctorIdInput.setPromptText("Doctor ID");
+        doctorDropdown = new ComboBox<>();
+        doctorDropdown.setPromptText("Select Doctor");
+        loadDoctors();
 
-        datetimeInput = new TextField();
-        datetimeInput.setPromptText("YYYY-MM-DD HH:MM:SS");
+        dateInput = new TextField();
+        dateInput.setPromptText("Date: YYYY-MM-DD");
+        dateInput.setPrefWidth(130);
+
+        timeInput = new TextField();
+        timeInput.setPromptText("Time: HH:MM");
+        timeInput.setPrefWidth(100);
 
         Button bookButton = new Button("Book Appointment");
         bookButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -73,14 +92,70 @@ public class AppointmentView {
             }
         });
 
-        formBox.getChildren().addAll(patientIdInput, doctorIdInput, datetimeInput, bookButton);
+        formBox.getChildren().addAll(patientDropdown, doctorDropdown, dateInput, timeInput, bookButton);
 
-        root.getChildren().addAll(title, table, formBox);
+        // Back button
+        Button backButton = new Button("Back");
+        backButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (callerRole.equals("Admin")) {
+                    ManageUsers manageScreen = new ManageUsers(stage);
+                    manageScreen.initializeComponents();
+                } else {
+                    PatientView patientScreen = new PatientView(stage, callerRole);
+                    patientScreen.initializeComponents();
+                }
+            }
+        });
 
-        Scene scene = new Scene(root, 800, 500);
+        root.getChildren().addAll(title, table);
+
+        // Only receptionist can book
+        if (callerRole.equals("Receptionist")) {
+            root.getChildren().add(formBox);
+        }
+
+        root.getChildren().add(backButton);
+
+        Scene scene = new Scene(root, 800, 550);
         stage.setScene(scene);
         stage.setTitle("HMS - Appointments");
         stage.show();
+    }
+
+    private void loadPatients() {
+        Connection con = DBUtils.establishConnection();
+        try {
+            String q = "SELECT id, first_name, last_name FROM patients";
+            PreparedStatement pstmt = con.prepareStatement(q);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String display = rs.getString("first_name") + " " + rs.getString("last_name");
+                patientMap.put(display, rs.getInt("id"));
+                patientDropdown.getItems().add(display);
+            }
+            DBUtils.closeConnection(con, pstmt);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private void loadDoctors() {
+        Connection con = DBUtils.establishConnection();
+        try {
+            String q = "SELECT id, username FROM users WHERE role = 'Doctor'";
+            PreparedStatement pstmt = con.prepareStatement(q);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String display = rs.getString("username");
+                doctorMap.put(display, rs.getInt("id"));
+                doctorDropdown.getItems().add(display);
+            }
+            DBUtils.closeConnection(con, pstmt);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     private void loadData() {
@@ -90,27 +165,32 @@ public class AppointmentView {
     }
 
     private void bookAppointment() {
-        String pidText = patientIdInput.getText();
-        String didText = doctorIdInput.getText();
-        String datetime = datetimeInput.getText();
+        String selectedPatient = patientDropdown.getValue();
+        String selectedDoctor = doctorDropdown.getValue();
+        String date = dateInput.getText();
+        String time = timeInput.getText();
 
-        if (pidText.isEmpty() || didText.isEmpty() || datetime.isEmpty()) {
+        if (selectedPatient == null || selectedDoctor == null || date.isEmpty() || time.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "All fields are required");
             alert.showAndWait();
             return;
         }
 
-        int patientId = Integer.parseInt(pidText);
-        int doctorId = Integer.parseInt(didText);
+        // combine date and time into the DB format
+        String datetime = date + " " + time + ":00";
+
+        int patientId = patientMap.get(selectedPatient);
+        int doctorId = doctorMap.get(selectedDoctor);
 
         Appointment appt = new Appointment(patientId, doctorId, datetime, "Scheduled");
         boolean success = AppointmentDAO.addAppointment(appt);
 
         if (success) {
             loadData();
-            patientIdInput.clear();
-            doctorIdInput.clear();
-            datetimeInput.clear();
+            patientDropdown.getSelectionModel().clearSelection();
+            doctorDropdown.getSelectionModel().clearSelection();
+            dateInput.clear();
+            timeInput.clear();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to book appointment");
             alert.showAndWait();

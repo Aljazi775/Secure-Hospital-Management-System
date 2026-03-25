@@ -32,19 +32,19 @@ public class ManageUsers {
     public void initializeComponents() {
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
-        
+
         Label title = new Label("Manage System Users");
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
         // Set up the table
         table = new TableView<>();
-        
+
         TableColumn<User, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        
+
         TableColumn<User, String> userCol = new TableColumn<>("Username");
         userCol.setCellValueFactory(new PropertyValueFactory<>("username"));
-        
+
         TableColumn<User, String> roleCol = new TableColumn<>("Role");
         roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
 
@@ -53,7 +53,6 @@ public class ManageUsers {
 
         table.getColumns().addAll(idCol, userCol, roleCol, lockedCol);
 
-        // Load data from db
         loadData();
 
         // Form to add new user
@@ -62,14 +61,14 @@ public class ManageUsers {
 
         usernameInput = new TextField();
         usernameInput.setPromptText("Username");
-        
+
         passwordInput = new PasswordField();
         passwordInput.setPromptText("Password");
 
         roleInput = new ComboBox<>();
         roleInput.getItems().addAll("Admin", "Doctor", "Receptionist");
         roleInput.setPromptText("Role");
-        
+
         Button addButton = new Button("Add User");
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -80,9 +79,42 @@ public class ManageUsers {
 
         formBox.getChildren().addAll(usernameInput, passwordInput, roleInput, addButton);
 
-        root.getChildren().addAll(title, table, formBox);
+        // Navigation buttons row
+        HBox navBox = new HBox(10);
+        navBox.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(root, 700, 500);
+        Button auditButton = new Button("View Audit Logs");
+        auditButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                CommandListing auditScreen = new CommandListing(stage);
+                auditScreen.initializeComponents();
+            }
+        });
+
+        Button appointmentButton = new Button("View Appointments");
+        appointmentButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                AppointmentView apptScreen = new AppointmentView(stage, "Admin");
+                apptScreen.initializeComponents();
+            }
+        });
+
+        Button logoutButton = new Button("Logout");
+        logoutButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                UserLogin loginScreen = new UserLogin(stage);
+                loginScreen.initializeComponents();
+            }
+        });
+
+        navBox.getChildren().addAll(auditButton, appointmentButton, logoutButton);
+
+        root.getChildren().addAll(title, table, formBox, navBox);
+
+        Scene scene = new Scene(root, 700, 550);
         stage.setScene(scene);
         stage.setTitle("HMS - Manage Users");
         stage.show();
@@ -95,7 +127,7 @@ public class ManageUsers {
             String q = "SELECT * FROM users";
             PreparedStatement pstmt = con.prepareStatement(q);
             ResultSet rs = pstmt.executeQuery();
-            
+
             while (rs.next()) {
                 User temp = new User(
                     rs.getInt("id"),
@@ -110,7 +142,7 @@ public class ManageUsers {
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-        
+
         userData = FXCollections.observableArrayList(list);
         table.setItems(userData);
     }
@@ -142,10 +174,10 @@ public class ManageUsers {
             pstmt.setString(1, u);
             pstmt.setString(2, hashedPassword);
             pstmt.setString(3, r);
-            
+
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
-                loadData(); // refresh table
+                loadData();
                 usernameInput.clear();
                 passwordInput.clear();
                 roleInput.getSelectionModel().clearSelection();
