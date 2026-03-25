@@ -87,10 +87,10 @@ public class UserLogin {
                 ManageUsers manageScreen = new ManageUsers(primaryStage);
                 manageScreen.initializeComponents();
             } else if (AuthorizationService.isDoctor(loggedInUser)) {
-                PatientView patientScreen = new PatientView(primaryStage);
+                PatientView patientScreen = new PatientView(primaryStage, "Doctor");
                 patientScreen.initializeComponents();
             } else {
-                PatientView patientScreen = new PatientView(primaryStage);
+                PatientView patientScreen = new PatientView(primaryStage, "Receptionist");
                 patientScreen.initializeComponents();
             }
         } else {

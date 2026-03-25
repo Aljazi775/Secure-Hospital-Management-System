@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class PatientView {
 
     private Stage stage;
+    private String role;
     private TableView<Patient> table;
     private ObservableList<Patient> patientData;
     private TextField fNameInput;
@@ -24,85 +25,136 @@ public class PatientView {
     private TextField phoneInput;
     private TextField addressInput;
 
-    public PatientView(Stage s) {
+    public PatientView(Stage s, String role) {
         this.stage = s;
+        this.role = role;
     }
 
     public void initializeComponents() {
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
-        
+
         Label title = new Label("Patient Data Dashboard");
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
         // Set up the table
         table = new TableView<>();
-        
+
         TableColumn<Patient, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        
+
         TableColumn<Patient, String> fnameCol = new TableColumn<>("First Name");
         fnameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        
+
         TableColumn<Patient, String> lnameCol = new TableColumn<>("Last Name");
         lnameCol.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        
+
         TableColumn<Patient, String> dobCol = new TableColumn<>("DOB");
         dobCol.setCellValueFactory(new PropertyValueFactory<>("dob"));
 
         TableColumn<Patient, String> genderCol = new TableColumn<>("Gender");
         genderCol.setCellValueFactory(new PropertyValueFactory<>("gender"));
-        
+
         TableColumn<Patient, String> phoneCol = new TableColumn<>("Phone");
         phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone"));
 
         table.getColumns().addAll(idCol, fnameCol, lnameCol, dobCol, genderCol, phoneCol);
 
-        // Load data from db
         loadData();
 
-        // Form to add new patient
-        HBox formBox = new HBox(10);
-        formBox.setAlignment(Pos.CENTER);
+        // Navigation buttons
+        HBox navBox = new HBox(10);
+        navBox.setAlignment(Pos.CENTER);
 
-        fNameInput = new TextField();
-        fNameInput.setPromptText("First Name");
-        
-        lNameInput = new TextField();
-        lNameInput.setPromptText("Last Name");
+        // Receptionist: can add patients and book appointments
+        if (role.equals("Receptionist")) {
+            HBox formBox = new HBox(10);
+            formBox.setAlignment(Pos.CENTER);
 
-        dobInput = new TextField();
-        dobInput.setPromptText("YYYY-MM-DD");
+            fNameInput = new TextField();
+            fNameInput.setPromptText("First Name");
 
-        genderInput = new TextField();
-        genderInput.setPromptText("Gender");
-        
-        phoneInput = new TextField();
-        phoneInput.setPromptText("Phone");
-        
-        addressInput = new TextField();
-        addressInput.setPromptText("Address");
-        
-        Button addButton = new Button("Add New Patient");
-        addButton.setOnAction(new EventHandler<ActionEvent>() {
+            lNameInput = new TextField();
+            lNameInput.setPromptText("Last Name");
+
+            dobInput = new TextField();
+            dobInput.setPromptText("YYYY-MM-DD");
+
+            genderInput = new TextField();
+            genderInput.setPromptText("Gender");
+
+            phoneInput = new TextField();
+            phoneInput.setPromptText("+974XXXXXXXX");
+
+            addressInput = new TextField();
+            addressInput.setPromptText("Address");
+
+            Button addButton = new Button("Add New Patient");
+            addButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    addPatientButtonClicked();
+                }
+            });
+
+            formBox.getChildren().addAll(fNameInput, lNameInput, dobInput, genderInput, phoneInput, addressInput, addButton);
+            root.getChildren().addAll(title, table, formBox);
+
+            Button appointmentButton = new Button("Book Appointment");
+            appointmentButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    AppointmentView apptScreen = new AppointmentView(stage, role);
+                    apptScreen.initializeComponents();
+                }
+            });
+            navBox.getChildren().add(appointmentButton);
+        }
+
+        // Doctor: can view medical records and view appointments
+        if (role.equals("Doctor")) {
+            root.getChildren().addAll(title, table);
+
+            Button medRecordButton = new Button("Medical Records");
+            medRecordButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    MedicalRecordView medScreen = new MedicalRecordView(stage, role);
+                    medScreen.initializeComponents();
+                }
+            });
+
+            Button appointmentButton = new Button("View Appointments");
+            appointmentButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    AppointmentView apptScreen = new AppointmentView(stage, role);
+                    apptScreen.initializeComponents();
+                }
+            });
+
+            navBox.getChildren().addAll(medRecordButton, appointmentButton);
+        }
+
+        Button logoutButton = new Button("Logout");
+        logoutButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                addPatientButtonClicked();
+                UserLogin loginScreen = new UserLogin(stage);
+                loginScreen.initializeComponents();
             }
         });
 
-        formBox.getChildren().addAll(fNameInput, lNameInput, dobInput, genderInput, phoneInput, addressInput, addButton);
+        navBox.getChildren().add(logoutButton);
+        root.getChildren().add(navBox);
 
-        root.getChildren().addAll(title, table, formBox);
-
-        Scene scene = new Scene(root, 900, 600);
+        Scene scene = new Scene(root, 900, 620);
         stage.setScene(scene);
-        stage.setTitle("HMS - Patients");
+        stage.setTitle("HMS - Patients (" + role + ")");
         stage.show();
     }
 
     private void loadData() {
-        // use PatientDAO to fetch rows
         ArrayList<Patient> list = PatientDAO.getAllPatients();
         patientData = FXCollections.observableArrayList(list);
         table.setItems(patientData);
@@ -144,9 +196,7 @@ public class PatientView {
         boolean success = PatientDAO.addPatient(newPatient);
 
         if (success) {
-            // refresh table
             loadData();
-            // clear inputs
             fNameInput.clear();
             lNameInput.clear();
             dobInput.clear();
