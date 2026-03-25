@@ -122,6 +122,24 @@ public class PatientView {
             return;
         }
 
+        if (!InputValidator.isValidUsername(fname) || !InputValidator.isValidUsername(lname)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Names must be alphanumeric and 3-20 chars");
+            alert.showAndWait();
+            return;
+        }
+
+        if (!InputValidator.isValidDate(dob)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "DOB must be YYYY-MM-DD");
+            alert.showAndWait();
+            return;
+        }
+
+        if (!InputValidator.isValidPhone(phone)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Phone must be in Qatari format (+974 or 00974)");
+            alert.showAndWait();
+            return;
+        }
+
         Patient newPatient = new Patient(fname, lname, dob, gender, phone, address);
         boolean success = PatientDAO.addPatient(newPatient);
 

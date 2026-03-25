@@ -126,6 +126,12 @@ public class ManageUsers {
             return;
         }
 
+        if (!InputValidator.isValidUsername(u)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Username must be alphanumeric and 3-20 chars");
+            alert.showAndWait();
+            return;
+        }
+
         String salt = BCrypt.gensalt(12);
         String hashedPassword = BCrypt.hashpw(p, salt);
 

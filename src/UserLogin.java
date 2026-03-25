@@ -70,6 +70,11 @@ public class UserLogin {
         String username = usernameField.getText();
         String password = passwordField.getText();    
         
+        if (!InputValidator.isValidUsername(username)) {
+            showAlert("Invalid Input", "Username contains invalid characters.");
+            return;
+        }
+
         User loggedInUser = AuthenticationService.authenticate(username, password);
 
         if (loggedInUser != null) {
