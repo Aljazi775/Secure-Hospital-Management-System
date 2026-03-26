@@ -3,6 +3,8 @@ public class MedicalRecord {
     private int id;
     private int patientId;
     private int doctorId;
+    private String patientName;
+    private String doctorName;
     private String diagnosisEnc;
     private String prescriptionEnc;
     private String createdAt;
@@ -36,6 +38,22 @@ public class MedicalRecord {
 
     public void setDoctorId(int doctorId) {
         this.doctorId = doctorId;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
     }
 
     public String getDiagnosisEnc() {
