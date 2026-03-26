@@ -1,5 +1,7 @@
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -53,9 +55,18 @@ public class CommandListing {
 
         loadData();
 
-        root.getChildren().addAll(title, table);
+        Button backButton = new Button("Back to Admin");
+        backButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                ManageUsers manageScreen = new ManageUsers(stage);
+                manageScreen.initializeComponents();
+            }
+        });
 
-        Scene scene = new Scene(root, 950, 500);
+        root.getChildren().addAll(title, table, backButton);
+
+        Scene scene = new Scene(root, 950, 520);
         stage.setScene(scene);
         stage.setTitle("HMS - Audit Logs");
         stage.show();
