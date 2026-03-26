@@ -17,6 +17,8 @@ public class AppointmentDAO {
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
                 success = true;
+                // log the action for audit trail
+                AuditDAO.logAction(0, "INSERT", "appointments", "", "patient_id=" + a.getPatientId() + " doctor_id=" + a.getDoctorId() + " date=" + a.getApptDatetime());
             }
             DBUtils.closeConnection(con, pstmt);
         } catch (Exception ex) {

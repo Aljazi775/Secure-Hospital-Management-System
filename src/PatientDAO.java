@@ -19,6 +19,8 @@ public class PatientDAO {
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
                 success = true;
+                // log the action for audit trail
+                AuditDAO.logAction(0, "INSERT", "patients", "", p.getFirstName() + " " + p.getLastName());
             }
             DBUtils.closeConnection(con, pstmt);
         } catch (Exception ex) {
