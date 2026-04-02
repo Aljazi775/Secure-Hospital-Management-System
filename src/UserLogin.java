@@ -70,6 +70,16 @@ public class UserLogin {
         String username = usernameField.getText();
         String password = passwordField.getText();    
         
+        if (username.isEmpty() || password.isEmpty()) {
+            showAlert("Invalid Input", "Fields cannot be empty.");
+            return;
+        }
+
+        if (username.length() < 3 || username.length() > 20) {
+            showAlert("Invalid Input", "Username must be 3-20 characters.");
+            return;
+        }
+
         if (!InputValidator.isValidUsername(username)) {
             showAlert("Invalid Input", "Username contains invalid characters.");
             return;
